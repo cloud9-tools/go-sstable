@@ -5,27 +5,7 @@ import (
 	"testing"
 )
 
-type BytesReaderCloser struct {
-	*bytes.Reader
-}
-
-func (BytesReaderCloser) Close() error {
-	return nil
-}
-
-func equalBytes(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := 0; i < len(a); i++ {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func Test_roundtrip(t *testing.T) {
+func TestSSTable_roundtrip(t *testing.T) {
 	input := []Pair{
 		Pair{"q", nil},
 		Pair{"w", []byte{'a'}},
@@ -38,7 +18,7 @@ func Test_roundtrip(t *testing.T) {
 		t.Errorf("build err = %#v", err)
 		return
 	}
-	r := BytesReaderCloser{bytes.NewReader(buf.Bytes())}
+	r := bytesReaderCloser{bytes.NewReader(buf.Bytes())}
 	tbl, err := New(r)
 	if err != nil {
 		t.Errorf("load err = %#v", err)

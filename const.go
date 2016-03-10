@@ -10,6 +10,7 @@ var (
 	ErrKeyTooLong     = errors.New("go-sstable: key too long (max key length 255 bytes)")
 	ErrValueTooLong   = errors.New("go-sstable: value too long (max value length 4 GiB)")
 	ErrBadFormat      = errors.New("go-sstable: invalid file format")
+	ErrKeyNotFound    = errors.New("go-sstable: key not found")
 )
 
 const (

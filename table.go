@@ -96,3 +96,26 @@ func (t *SSTable) Find(key string) int {
 	}
 	return -1
 }
+
+func (t *SSTable) Get(key string) ([]byte, error) {
+	i := t.Find(key)
+	if i >= 0 {
+		return t.Value(i)
+	}
+	return nil, ErrKeyNotFound
+}
+
+func (t *SSTable) Range(lo, hi string) (int, int) {
+	i := sort.Search(len(t.r), func(idx int) bool {
+		return t.r[idx].key >= lo
+	})
+	j := sort.Search(len(t.r), func(idx int) bool {
+		return t.r[idx].key >= hi
+	})
+	return i, j
+}
+
+func (t *SSTable) InRange(lo, hi string) <-chan Pair {
+	i, j := t.Range(lo, hi)
+	return t.In(i, j)
+}
