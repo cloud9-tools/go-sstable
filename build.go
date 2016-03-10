@@ -36,7 +36,7 @@ func Build(w io.Writer, data []Pair) error {
 
 	var tmp [256]byte
 
-	_, err := w.Write(magic[:])
+	_, err := w.Write([]byte(magic))
 	if err != nil {
 		return err
 	}
