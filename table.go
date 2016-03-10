@@ -5,14 +5,13 @@ import (
 	"sort"
 )
 
-type ReadSeekCloser interface {
-	io.Reader
-	io.Seeker
+type ReadAtCloser interface {
+	io.ReaderAt
 	io.Closer
 }
 
 type SSTable struct {
-	f ReadSeekCloser
+	f ReadAtCloser
 	r []record
 	m []byte
 }
@@ -23,7 +22,7 @@ type record struct {
 	offset uint32
 }
 
-func New(f ReadSeekCloser) (*SSTable, error) {
+func New(f ReadAtCloser) (*SSTable, error) {
 	t := &SSTable{f, nil, nil}
 	if err := t.load(); err != nil {
 		return nil, err
@@ -56,12 +55,8 @@ func (t *SSTable) Value(idx int) ([]byte, error) {
 		q := t.r[idx].length + p
 		return t.m[p:q], nil
 	}
-	_, err := t.f.Seek(int64(t.r[idx].offset), 0)
-	if err != nil {
-		return nil, err
-	}
 	data := make([]byte, t.r[idx].length)
-	n, err := t.f.Read(data)
+	n, err := t.f.ReadAt(data, int64(t.r[idx].offset))
 	if err != nil {
 		return nil, err
 	}
