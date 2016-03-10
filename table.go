@@ -14,6 +14,7 @@ type ReadSeekCloser interface {
 type SSTable struct {
 	f ReadSeekCloser
 	r []record
+	m []byte
 }
 
 type record struct {
@@ -23,15 +24,21 @@ type record struct {
 }
 
 func New(f ReadSeekCloser) (*SSTable, error) {
-	t := &SSTable{f, nil}
-	err := t.load()
-	if err != nil {
+	t := &SSTable{f, nil, nil}
+	if err := t.load(); err != nil {
+		return nil, err
+	}
+	if err := t.tryMMap(); err != nil && err != errNotImplemented {
 		return nil, err
 	}
 	return t, nil
 }
 
 func (t *SSTable) Close() error {
+	if t.m != nil {
+		t.tryMunmap()
+		t.m = nil
+	}
 	return t.f.Close()
 }
 
@@ -44,6 +51,11 @@ func (t *SSTable) Key(idx int) string {
 }
 
 func (t *SSTable) Value(idx int) ([]byte, error) {
+	if t.m != nil {
+		p := t.r[idx].offset
+		q := t.r[idx].length + p
+		return t.m[p:q], nil
+	}
 	_, err := t.f.Seek(int64(t.r[idx].offset), 0)
 	if err != nil {
 		return nil, err
@@ -66,25 +78,6 @@ func (t *SSTable) At(idx int) (Pair, error) {
 		return Pair{}, err
 	}
 	return Pair{k, v}, nil
-}
-
-func (t *SSTable) In(i, j int) <-chan Pair {
-	ch := make(chan Pair)
-	go (func() {
-		for idx := i; idx < j; idx++ {
-			item, err := t.At(idx)
-			if err != nil {
-				panic(err)
-			}
-			ch <- item
-		}
-		close(ch)
-	})()
-	return ch
-}
-
-func (t *SSTable) All() <-chan Pair {
-	return t.In(0, t.Len())
 }
 
 func (t *SSTable) Find(key string) int {
@@ -115,7 +108,46 @@ func (t *SSTable) Range(lo, hi string) (int, int) {
 	return i, j
 }
 
+func (t *SSTable) KeysIn(i, j int) <-chan string {
+	ch := make(chan string)
+	go (func() {
+		for idx := i; idx < j; idx++ {
+			ch <- t.Key(idx)
+		}
+		close(ch)
+	})()
+	return ch
+}
+
+func (t *SSTable) KeysInRange(lo, hi string) <-chan string {
+	i, j := t.Range(lo, hi)
+	return t.KeysIn(i, j)
+}
+
+func (t *SSTable) AllKeys() <-chan string {
+	return t.KeysIn(0, t.Len())
+}
+
+func (t *SSTable) In(i, j int) <-chan Pair {
+	ch := make(chan Pair)
+	go (func() {
+		for idx := i; idx < j; idx++ {
+			item, err := t.At(idx)
+			if err != nil {
+				panic(err)
+			}
+			ch <- item
+		}
+		close(ch)
+	})()
+	return ch
+}
+
 func (t *SSTable) InRange(lo, hi string) <-chan Pair {
 	i, j := t.Range(lo, hi)
 	return t.In(i, j)
+}
+
+func (t *SSTable) All() <-chan Pair {
+	return t.In(0, t.Len())
 }

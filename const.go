@@ -14,9 +14,11 @@ var (
 )
 
 const (
+	kmaxint    = int(^uint(0) >> 1)
 	kmaxuint32 = 0xffffffff
 	kmaxkeylen = 255
 	magic      = "9SS0"
 )
 
 var pad [8]byte
+var errNotImplemented = errors.New("not implemented")
