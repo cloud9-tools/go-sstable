@@ -44,7 +44,7 @@ func main() {
 
 	var input []sstable.Pair
 	for k, v := range inmap {
-		input = append(input, sstable.Pair{k, []byte(v)})
+		input = append(input, sstable.Pair{k, v})
 	}
 	err = sstable.Build(outfile, input)
 	if err != nil {
