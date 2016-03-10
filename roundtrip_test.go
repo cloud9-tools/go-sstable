@@ -76,4 +76,5 @@ func Test_roundtrip(t *testing.T) {
 	if len(input) < len(output) {
 		t.Errorf("extra %d items", len(output)-len(input))
 	}
+	tbl.Close()
 }
