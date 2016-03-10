@@ -2,7 +2,6 @@ package sstable
 
 import (
 	"encoding/binary"
-	"fmt"
 	"io"
 	"os"
 	"sort"
@@ -110,7 +109,6 @@ func (t *SSTable) load() error {
 		return io.ErrUnexpectedEOF
 	}
 	if string(data[0:len(magic)]) != magic {
-		fmt.Fprintf(os.Stderr, "DEBUG: %#v\n", data)
 		return ErrBadFormat
 	}
 	count := binary.BigEndian.Uint32(data[len(magic):])
