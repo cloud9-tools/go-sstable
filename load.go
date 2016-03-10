@@ -3,7 +3,6 @@ package sstable
 import (
 	"encoding/binary"
 	"io"
-	"os"
 	"sort"
 )
 
