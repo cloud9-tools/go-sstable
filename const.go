@@ -20,5 +20,4 @@ const (
 	magic      = "9SS0"
 )
 
-var pad [8]byte
 var errNotImplemented = errors.New("not implemented")

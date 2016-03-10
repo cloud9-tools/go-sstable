@@ -6,10 +6,6 @@ import (
 	"sort"
 )
 
-func align(x uint32) uint32 {
-	return (x + 7) & ^uint32(7)
-}
-
 func Build(w io.Writer, data []Pair) error {
 	if len(data) > kmaxuint32 {
 		return ErrTooManyRecords
@@ -24,9 +20,8 @@ func Build(w io.Writer, data []Pair) error {
 		}
 		maxoffset += 9 + uint64(len(item.Key))
 	}
-	maxoffset = (maxoffset + 7) & ^uint64(7)
 	for _, item := range data {
-		maxoffset += uint64(align(uint32(len(item.Value))))
+		maxoffset += uint64(len(item.Value))
 	}
 	if maxoffset > kmaxuint32 {
 		return ErrTooMuchData
@@ -51,8 +46,6 @@ func Build(w io.Writer, data []Pair) error {
 	for _, item := range data {
 		offset += 9 + uint32(len(item.Key))
 	}
-	postKeyPadLen := align(offset) - offset
-	offset = align(offset)
 
 	for _, item := range data {
 		binary.BigEndian.PutUint32(tmp[0:4], uint32(len(item.Value)))
@@ -69,23 +62,11 @@ func Build(w io.Writer, data []Pair) error {
 			return err
 		}
 
-		offset += align(uint32(len(item.Value)))
-	}
-
-	_, err = w.Write(pad[0:postKeyPadLen])
-	if err != nil {
-		return err
+		offset += uint32(len(item.Value))
 	}
 
 	for _, item := range data {
 		_, err = w.Write(item.Value)
-		if err != nil {
-			return err
-		}
-
-		n := uint32(len(item.Value))
-		padlen := align(n) - n
-		_, err = w.Write(pad[0:padlen])
 		if err != nil {
 			return err
 		}

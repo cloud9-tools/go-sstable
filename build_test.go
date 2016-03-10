@@ -25,20 +25,20 @@ func TestBuild_simple(t *testing.T) {
 		0, 0, 0, 0x30, // first pair: offset 48
 		1, 'o', // first pair: name "o"
 		0, 0, 0, 3, // second pair: length 3
-		0, 0, 0, 0x38, // second pair: offset 56
+		0, 0, 0, 0x32, // second pair: offset 50
 		1, 'p', // second pair: name "p"
 		0, 0, 0, 0, // third pair: length 0
-		0, 0, 0, 0x40, // third pair: offset 64
+		0, 0, 0, 0x35, // third pair: offset 53
 		1, 'q', // third pair: name "q"
 		0, 0, 0, 1, // fourth pair: length 1
-		0, 0, 0, 0x40, // fourth pair: offset 64
+		0, 0, 0, 0x35, // fourth pair: offset 53
 		1, 'w', // fourth pair: name "w"
 		// <-- offset 48
-		'b', 'b', 0, 0, 0, 0, 0, 0, // 2 data + 6 padding
+		'b', 'b', // 2 data
 		// <-- offset 56
-		'c', 'c', 'c', 0, 0, 0, 0, 0, // 3 data + 5 padding
+		'c', 'c', 'c', // 3 data
 		// <-- offset 64
-		'a', 0, 0, 0, 0, 0, 0, 0, // 1 data + 7 padding
+		'a', // 1 data
 	}
 	for i := 0; i < len(expected); i++ {
 		if i >= len(actual) {
@@ -47,7 +47,7 @@ func TestBuild_simple(t *testing.T) {
 		}
 		if actual[i] != expected[i] {
 			j := i + 1
-			for j < len(expected) {
+			for j < len(actual) && j < len(expected) {
 				if actual[j] == expected[j] {
 					break
 				}
