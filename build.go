@@ -35,7 +35,7 @@ func Build(w io.Writer, data []Pair) error {
 	copy(tmp[0:n], []byte(magic))
 	binary.BigEndian.PutUint32(tmp[n:n+4], uint32(len(data)))
 	n += 4
-	binary.BigEndian.PutUint32(tmp[n:n+4], crc_mask(crc32c(tmp[0:n])))
+	binary.BigEndian.PutUint32(tmp[n:n+4], newCRC(tmp[0:n]).Value())
 	n += 4
 	if _, err := w.Write(tmp[0:n]); err != nil {
 		return err
@@ -49,10 +49,10 @@ func Build(w io.Writer, data []Pair) error {
 		tmp[2] = uint8(lenValue >> 8)
 		tmp[3] = uint8(lenValue)
 		binary.BigEndian.PutUint32(tmp[4:8], uint32(offset))
-		binary.BigEndian.PutUint32(tmp[8:12], crc_mask(crc32c(item.Value)))
-		cksum := crc32c(tmp[0:12])
-		cksum = crc32c_update(cksum, []byte(item.Key))
-		binary.BigEndian.PutUint32(tmp[12:16], crc_mask(cksum))
+		binary.BigEndian.PutUint32(tmp[8:12], newCRC(item.Value).Value())
+		cksum := newCRC(tmp[0:12])
+		cksum = cksum.Update([]byte(item.Key))
+		binary.BigEndian.PutUint32(tmp[12:16], cksum.Value())
 		if _, err := w.Write(tmp[0:16]); err != nil {
 			return err
 		}

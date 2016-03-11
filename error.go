@@ -12,7 +12,7 @@ func (err ChecksumError) Error() string {
 }
 
 func VerifyChecksum(expected uint32, data []byte) error {
-	actual := crc_mask(crc32c(data))
+	actual := newCRC(data).Value()
 	if expected != actual {
 		return ChecksumError{expected, actual}
 	}

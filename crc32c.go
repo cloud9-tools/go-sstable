@@ -4,23 +4,18 @@ import (
 	"hash/crc32"
 )
 
-const kmaskdelta = 0xa282ead8
-
 var castagnoliTable = crc32.MakeTable(crc32.Castagnoli)
 
-func crc32c(data []byte) uint32 {
-	return crc32.Checksum(data, castagnoliTable)
+type crc uint32
+
+func newCRC(data []byte) crc {
+	return crc(0).Update(data)
 }
 
-func crc32c_update(crc uint32, data []byte) uint32 {
-	return crc32.Update(crc, castagnoliTable, data)
+func (c crc) Update(data []byte) crc {
+	return crc(crc32.Update(uint32(c), castagnoliTable, data))
 }
 
-func crc_mask(crc uint32) uint32 {
-	return ((crc >> 15) | (crc << 17)) + kmaskdelta
-}
-
-func crc_unmask(crc uint32) uint32 {
-	tmp := crc - kmaskdelta
-	return ((tmp >> 17) | (tmp << 15))
+func (c crc) Value() uint32 {
+	return uint32((c>>15)|(c<<17)) + 0xa282ead8
 }
