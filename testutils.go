@@ -41,10 +41,10 @@ func dummyTable() *SSTable {
 	return &SSTable{
 		f: bytesReaderCloser{bytes.NewReader(data)},
 		r: []record{
-			record{"o", 2, 1},
-			record{"p", 3, 3},
-			record{"q", 0, 0},
-			record{"w", 1, 0},
+			record{"o", 2, 1, 0xa5e29763},
+			record{"p", 3, 3, 0x8e1dbfe5},
+			record{"q", 0, 0, 0xa282ead8},
+			record{"w", 1, 0, 0x28e46e78},
 		},
 	}
 }

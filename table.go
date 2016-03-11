@@ -20,6 +20,7 @@ type record struct {
 	key    string
 	length uint32
 	offset uint32
+	cksum  uint32
 }
 
 func New(f ReadAtCloser) (*SSTable, error) {
@@ -49,7 +50,7 @@ func (t *SSTable) Key(idx int) string {
 	return t.r[idx].key
 }
 
-func (t *SSTable) Value(idx int) ([]byte, error) {
+func (t *SSTable) rawValue(idx int) ([]byte, error) {
 	if t.m != nil {
 		p := t.r[idx].offset
 		q := t.r[idx].length + p
@@ -57,6 +58,9 @@ func (t *SSTable) Value(idx int) ([]byte, error) {
 	}
 	data := make([]byte, t.r[idx].length)
 	n, err := t.f.ReadAt(data, int64(t.r[idx].offset))
+	if err == io.EOF {
+		return nil, io.ErrUnexpectedEOF
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +68,17 @@ func (t *SSTable) Value(idx int) ([]byte, error) {
 		return nil, io.ErrUnexpectedEOF
 	}
 	return data, nil
+}
+
+func (t *SSTable) Value(idx int) ([]byte, error) {
+	raw, err := t.rawValue(idx)
+	if err == nil {
+		err = VerifyChecksum(t.r[idx].cksum, raw)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return raw, nil
 }
 
 func (t *SSTable) At(idx int) (Pair, error) {

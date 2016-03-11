@@ -41,6 +41,36 @@ func TestSSTable_Range(t *testing.T) {
 	}
 }
 
+func TestSSTable_All(t *testing.T) {
+	tbl := dummyTable()
+	expectedKeys := []string{"o", "p", "q", "w"}
+	expectedValues := map[string][]byte{
+		"q": nil,
+		"w": []byte{'a'},
+		"o": []byte{'b', 'b'},
+		"p": []byte{'c', 'c', 'c'},
+	}
+
+	var keys []string
+	for item := range tbl.All() {
+		keys = append(keys, item.Key)
+		if !equalBytes(item.Value, expectedValues[item.Key]) {
+			t.Errorf("All(): %q: expected %v, got %v", item.Key, expectedValues[item.Key], item.Value)
+		}
+	}
+	if !equalStrings(keys, expectedKeys) {
+		t.Errorf("All(): expected %v, got %v", expectedKeys, keys)
+	}
+
+	keys = keys[0:0]
+	for key := range tbl.AllKeys() {
+		keys = append(keys, key)
+	}
+	if !equalStrings(keys, expectedKeys) {
+		t.Errorf("AllKeys(): expected %v, got %v", expectedKeys, keys)
+	}
+}
+
 func TestSSTable_Get(t *testing.T) {
 	tbl := dummyTable()
 	result, err := tbl.Get("o")

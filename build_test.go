@@ -19,28 +19,40 @@ func TestBuild_simple(t *testing.T) {
 	}
 	actual := buf.Bytes()
 	expected := []byte{
+		// header
 		'9', 'S', 'S', '0', // magic
 		0, 0, 0, 4, // 4 pairs
-		0, 0, 0, 2, // first pair: length 2
-		0, 0, 0, 0x34, // first pair: offset 52
-		1, 'o', // first pair: name "o"
-		0, 0, 0, 3, // second pair: length 3
-		0, 0, 0, 0x3a, // second pair: offset 58
-		1, 'p', // second pair: name "p"
-		0, 0, 0, 0, // third pair: length 0
-		0, 0, 0, 0x41, // third pair: offset 65
-		1, 'q', // third pair: name "q"
-		0, 0, 0, 1, // fourth pair: length 1
-		0, 0, 0, 0x45, // fourth pair: offset 69
-		1, 'w', // fourth pair: name "w"
-		0xD5, 0x34, 0x8D, 0xB8, // index crc32c
-		'b', 'b', // 2 data
-		0xD6, 0x45, 0x81, 0xAF, // value crc32c
-		'c', 'c', 'c', // 3 data
-		0x6A, 0x86, 0xF5, 0xCD, // value crc32c
-		0x00, 0x00, 0x00, 0x00, // value crc32c
-		'a',                    // 1 data
-		0xC1, 0xD0, 0x43, 0x30, // value crc32c
+		0x3B, 0x18, 0xDD, 0x01, // header checksum
+		// first pair
+		1,       // key length
+		0, 0, 2, // value length
+		0, 0, 0, 80, // value offset
+		0xA5, 0xE2, 0x97, 0x63, // value checksum
+		0xF9, 0x2A, 0xBC, 0xD8, // entry checksum
+		'o', // name
+		// second pair
+		1,       // key length
+		0, 0, 3, // value length
+		0, 0, 0, 82, // value offset
+		0x8E, 0x1D, 0xBF, 0xE5, // value checksum
+		0xA8, 0xAB, 0x6F, 0xBB, // entry checksum
+		'p', // name
+		// third pair
+		1,       // key length
+		0, 0, 0, // value length
+		0, 0, 0, 85, // value offset
+		0xA2, 0x82, 0xEA, 0xD8, // value checksum
+		0x2F, 0x38, 0xFB, 0xA2, // entry checksum
+		'q', // name
+		// fourth pair
+		1,       // key length
+		0, 0, 1, // value length
+		0, 0, 0, 85, // value offset
+		0x28, 0xE4, 0x6E, 0x78, // value checksum
+		0x33, 0x01, 0x18, 0xDC, // entry checksum
+		'w', // name
+		// data
+		'b', 'b', 'c', 'c', 'c', 'a',
 	}
 	for i := 0; i < len(expected); i++ {
 		if i >= len(actual) {
