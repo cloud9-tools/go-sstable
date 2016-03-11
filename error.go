@@ -1,6 +1,10 @@
 package sstable
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/cloud9-tools/go-sstable/internal"
+)
 
 type ChecksumError struct {
 	Expected uint32
@@ -12,7 +16,7 @@ func (err ChecksumError) Error() string {
 }
 
 func VerifyChecksum(expected uint32, data []byte) error {
-	actual := newCRC(data).Value()
+	actual := internal.NewCRC(data).Value()
 	if expected != actual {
 		return ChecksumError{expected, actual}
 	}
